@@ -1,14 +1,14 @@
 /*
- ============================================================
-  ESP8266 WiFi Repeater / Extender  –  Butler GUI  v2.4.0
- ============================================================
+ =============================================================
+  ESP8266 WiFi Repeater / Extender v2.4.0 created by Nihal MP
+ =============================================================
   Board   : NodeMCU / Wemos D1 Mini / any ESP8266 (4 MB)
   Core    : arduino-esp8266  ≥ 3.1
   Libs    : ESP8266WiFi, ESP8266WebServer, ESP8266mDNS,
             LittleFS, ArduinoOTA, DNSServer, lwIP (built-in)
   Flash   : 4 MB  –  select "4MB (FS:2MB OTA:~1019 KB)"
   CPU     : 160 MHz  (Tools → CPU Frequency)
- ============================================================
+ =============================================================
 
   HOW IT WORKS
   ─────────────
@@ -25,7 +25,7 @@
   3. Open  http://192.168.4.1  → Butler GUI
   4. Fill in your upstream SSID + password → Save & Reconnect
   5. Done – the extender bridges your network
- ============================================================
+ =============================================================
 */
 
 // ── User-editable defaults (overridden by stored config) ──
