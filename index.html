@@ -1,178 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
 
-<style>
-  body{margin:0;font-family:var(--font-mono,monospace);background:var(--color-background-tertiary);color:var(--color-text-primary);padding:1rem}
-  .tab-bar{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
-  .tab{padding:6px 14px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:13px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary)}
-  .tab.active{background:#185FA5;color:#fff;border-color:#185FA5}
-  .card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:12px}
-  .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;font-weight:500}
-  .badge-ok{background:#EAF3DE;color:#3B6D11}
-  .badge-warn{background:#FAEEDA;color:#854F0B}
-  .badge-off{background:#F1EFE8;color:#5F5E5A}
-  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:1rem}
-  .stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px;text-align:center}
-  .stat-val{font-size:20px;font-weight:500;color:var(--color-text-primary)}
-  .stat-lbl{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
-  .row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:13px}
-  .row:last-child{border:none}
-  .lbl{color:var(--color-text-secondary)}
-  .btn{padding:7px 18px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);cursor:pointer;font-size:13px;color:var(--color-text-primary)}
-  .btn:hover{background:var(--color-background-secondary)}
-  .btn-blue{background:#185FA5;color:#fff;border-color:#185FA5}
-  .btn-red{background:#A32D2D;color:#fff;border-color:#A32D2D}
-  .section-title{font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px}
-  .client-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:13px}
-  .dot{width:8px;height:8px;border-radius:50%;background:#639922;flex-shrink:0}
-  input,select{background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:6px 10px;font-size:13px;color:var(--color-text-primary);width:100%;box-sizing:border-box;margin-top:4px;margin-bottom:10px}
-  .signal-bar{display:flex;gap:2px;align-items:flex-end;height:14px}
-  .bar{width:4px;background:#185FA5;border-radius:1px}
-</style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ESP8266 Butler</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
 
-<div style="max-width:480px;margin:0 auto">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
-    <div style="width:36px;height:36px;border-radius:50%;background:#185FA5;display:flex;align-items:center;justify-content:center">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="#fff"/></svg>
-    </div>
-    <div>
-      <div style="font-size:15px;font-weight:500">ESP8266 Butler</div>
-      <div style="font-size:11px;color:var(--color-text-secondary)">WiFi Repeater Control Panel · 192.168.4.1</div>
-    </div>
-    <span class="badge badge-ok" style="margin-left:auto">Online</span>
-  </div>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 1rem
+        }
 
-  <div class="tab-bar">
-    <div class="tab active" onclick="show('status',this)">Status</div>
-    <div class="tab" onclick="show('network',this)">Network</div>
-    <div class="tab" onclick="show('clients',this)">Clients</div>
-    <div class="tab" onclick="show('advanced',this)">Advanced</div>
-    <div class="tab" onclick="show('system',this)">System</div>
-  </div>
+        h1 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px
+        }
 
-  <div id="status">
-    <div class="stat-grid">
-      <div class="stat"><div class="stat-val">3</div><div class="stat-lbl">Clients</div></div>
-      <div class="stat"><div class="stat-val">-62</div><div class="stat-lbl">RSSI (dBm)</div></div>
-      <div class="stat"><div class="stat-val">4.2h</div><div class="stat-lbl">Uptime</div></div>
-      <div class="stat"><div class="stat-val">47%</div><div class="stat-lbl">Heap Free</div></div>
-    </div>
-    <div class="card">
-      <div class="section-title">Upstream (STA)</div>
-      <div class="row"><span class="lbl">SSID</span><span>HomeRouter_5G</span></div>
-      <div class="row"><span class="lbl">IP</span><span>192.168.1.105</span></div>
-      <div class="row"><span class="lbl">Gateway</span><span>192.168.1.1</span></div>
-      <div class="row"><span class="lbl">Signal</span>
-        <span style="display:flex;align-items:center;gap:6px">
-          <span class="signal-bar">
-            <div class="bar" style="height:4px"></div>
-            <div class="bar" style="height:7px"></div>
-            <div class="bar" style="height:10px"></div>
-            <div class="bar" style="height:14px;background:#B4B2A9"></div>
-          </span>
-          -62 dBm
-        </span>
-      </div>
-    </div>
-    <div class="card">
-      <div class="section-title">Hotspot (AP)</div>
-      <div class="row"><span class="lbl">SSID</span><span>HomeRouter_5G_EXT</span></div>
-      <div class="row"><span class="lbl">IP</span><span>192.168.4.1</span></div>
-      <div class="row"><span class="lbl">Channel</span><span>6</span></div>
-      <div class="row"><span class="lbl">Security</span><span><span class="badge badge-ok">WPA2</span></span></div>
-    </div>
-  </div>
+        .sub {
+            font-size: 12px;
+            color: #94a3b8
+        }
 
-  <div id="network" style="display:none">
-    <div class="card">
-      <div class="section-title">Upstream WiFi (STA)</div>
-      <label style="font-size:13px;color:var(--color-text-secondary)">SSID</label>
-      <input type="text" value="HomeRouter_5G">
-      <label style="font-size:13px;color:var(--color-text-secondary)">Password</label>
-      <input type="password" value="••••••••••">
-      <label style="font-size:13px;color:var(--color-text-secondary)">DHCP / Static IP</label>
-      <select><option>DHCP (auto)</option><option>Static IP</option></select>
-      <button class="btn btn-blue" style="width:100%">Save &amp; Reconnect</button>
-    </div>
-    <div class="card">
-      <div class="section-title">Hotspot (AP)</div>
-      <label style="font-size:13px;color:var(--color-text-secondary)">AP SSID</label>
-      <input type="text" value="HomeRouter_5G_EXT">
-      <label style="font-size:13px;color:var(--color-text-secondary)">AP Password</label>
-      <input type="password" value="••••••••••">
-      <label style="font-size:13px;color:var(--color-text-secondary)">Channel</label>
-      <select><option>6</option><option>1</option><option>11</option><option>Auto</option></select>
-      <label style="font-size:13px;color:var(--color-text-secondary)">Max clients</label>
-      <select><option>4</option><option>8</option><option>1</option><option>2</option></select>
-      <button class="btn btn-blue" style="width:100%">Apply AP Settings</button>
-    </div>
-  </div>
+        header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px
+        }
 
-  <div id="clients" style="display:none">
-    <div class="card">
-      <div class="section-title">Connected clients (3)</div>
-      <div class="client-row"><div class="dot"></div><div style="flex:1"><div>iPhone-Arjun</div><div style="font-size:11px;color:var(--color-text-secondary)">192.168.4.2 · DC:A9:04:…</div></div><span class="badge badge-ok">-55 dBm</span></div>
-      <div class="client-row"><div class="dot"></div><div style="flex:1"><div>Samsung-TV</div><div style="font-size:11px;color:var(--color-text-secondary)">192.168.4.3 · B4:E6:2D:…</div></div><span class="badge badge-warn">-74 dBm</span></div>
-      <div class="client-row"><div class="dot"></div><div style="flex:1"><div>ESP32-cam</div><div style="font-size:11px;color:var(--color-text-secondary)">192.168.4.4 · CC:50:E3:…</div></div><span class="badge badge-ok">-61 dBm</span></div>
-    </div>
-    <div class="card">
-      <div class="section-title">Traffic (last 10 min)</div>
-      <div class="row"><span class="lbl">TX (to upstream)</span><span>14.2 MB</span></div>
-      <div class="row"><span class="lbl">RX (from upstream)</span><span>82.7 MB</span></div>
-      <div class="row"><span class="lbl">Packets forwarded</span><span>48,391</span></div>
-      <div class="row"><span class="lbl">Drops</span><span>12</span></div>
-    </div>
-  </div>
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: #2563eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
 
-  <div id="advanced" style="display:none">
-    <div class="card">
-      <div class="section-title">Repeater features</div>
-      <div class="row"><span class="lbl">NAT / IP forwarding</span><span><span class="badge badge-ok">Enabled</span></span></div>
-      <div class="row"><span class="lbl">DNS relay</span><span><span class="badge badge-ok">Enabled</span></span></div>
-      <div class="row"><span class="lbl">DHCP server</span><span><span class="badge badge-ok">On 192.168.4.x</span></span></div>
-      <div class="row"><span class="lbl">Band steering</span><span><span class="badge badge-off">N/A</span></span></div>
-      <div class="row"><span class="lbl">TX power</span><span>20.5 dBm (max)</span></div>
-    </div>
-    <div class="card">
-      <div class="section-title">Watchdog &amp; auto-reconnect</div>
-      <div class="row"><span class="lbl">Ping host</span><span>8.8.8.8</span></div>
-      <div class="row"><span class="lbl">Ping interval</span><span>30 s</span></div>
-      <div class="row"><span class="lbl">Reconnect retries</span><span>10</span></div>
-      <div class="row"><span class="lbl">Hard reboot after</span><span>5 min offline</span></div>
-      <div class="row"><span class="lbl">OTA updates</span><span><span class="badge badge-ok">Ready</span></span></div>
-    </div>
-    <div class="card">
-      <div class="section-title">Firewall / MAC filter</div>
-      <div class="row"><span class="lbl">Whitelist mode</span><span><span class="badge badge-off">Disabled</span></span></div>
-      <div class="row"><span class="lbl">Blacklist mode</span><span><span class="badge badge-off">Disabled</span></span></div>
-      <button class="btn" style="margin-top:8px;font-size:12px">Manage MAC list</button>
-    </div>
-  </div>
+        .badge {
+            display: inline-block;
+            font-size: 11px;
+            padding: 2px 9px;
+            border-radius: 10px;
+            font-weight: 600
+        }
 
-  <div id="system" style="display:none">
-    <div class="card">
-      <div class="section-title">Device info</div>
-      <div class="row"><span class="lbl">Firmware</span><span>v2.4.0</span></div>
-      <div class="row"><span class="lbl">Build</span><span>2024-12-01</span></div>
-      <div class="row"><span class="lbl">Chip ID</span><span>A1B2C3D4</span></div>
-      <div class="row"><span class="lbl">Flash</span><span>4 MB</span></div>
-      <div class="row"><span class="lbl">Free heap</span><span>22,880 bytes</span></div>
-      <div class="row"><span class="lbl">CPU freq</span><span>160 MHz</span></div>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-blue">OTA Update</button>
-      <button class="btn">Export Config</button>
-      <button class="btn">Import Config</button>
-      <button class="btn btn-red">Factory Reset</button>
-    </div>
-  </div>
+        .ok {
+            background: #166534;
+            color: #bbf7d0
+        }
 
-</div>
+        .warn {
+            background: #7c2d12;
+            color: #fed7aa
+        }
 
-<script>
-function show(id, el) {
-  ['status','network','clients','advanced','system'].forEach(s => {
-    document.getElementById(s).style.display = s === id ? '' : 'none'
-  })
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
-  el.classList.add('active')
-}
-</script>
+        .off {
+            background: #1e293b;
+            color: #94a3b8
+        }
+
+        nav {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 18px
+        }
+
+        .tab {
+            padding: 7px 16px;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            background: #1e293b;
+            color: #94a3b8;
+            transition: .15s
+        }
+
+        .tab.act {
+            background: #2563eb;
+            color: #fff;
+            border-color: #2563eb
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 12px
+        }
+
+        .card h3 {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: #64748b;
+            margin-bottom: 10px
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 0;
+            border-bottom: 1px solid #0f172a;
+            font-size: 13px
+        }
+
+        .row:last-child {
+            border: none
+        }
+
+        .lbl {
+            color: #64748b
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-bottom: 14px
+        }
+
+        .stat {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center
+        }
+
+        .stat .v {
+            font-size: 22px;
+            font-weight: 700;
+            color: #e2e8f0
+        }
+
+        .stat .l {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px
+        }
+
+        input,
+        select {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #e2e8f0;
+            font-size: 13px;
+            margin-top: 4px;
+            margin-bottom: 10px
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #2563eb
+        }
+
+        .btn {
+            padding: 8px 18px;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            background: #1e293b;
+            color: #e2e8f0;
+            cursor: pointer;
+            font-size: 13px;
+            transition: .15s
+        }
+
+        .btn:hover {
+            background: #334155
+        }
+
+        .btn-blue {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff
+        }
+
+        .btn-red {
+            background: #991b1b;
+            border-color: #991b1b;
+            color: #fff
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px
+        }
+
+        .page {
+            display: none
+        }
+
+        .page.act {
+            display: block
+        }
+
+        .sig {
+            display: inline-flex;
+            gap: 2px;
+            align-items: flex-end;
+            height: 14px;
+            vertical-align: middle
+        }
+
+        .sig span {
+            width: 4px;
+            border-radius: 1px
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                <path d="M5 12.55a11 11 0 0 1 14.08 0" />
+                <path d="M1.42 9a16 16 0 0 1 21.16 0" />
+                <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+                <circle cx="12" cy="20" r="1" fill="#fff" />
+            </svg>
+        </div>
+        <div>
+            <h1>ESP8266 Butler</h1>
+            <p class="sub">WiFi Repeater &middot; 192.168.4.1</p>
+        </div>
+        <span id="sta-badge" class="badge off" style="margin-left:auto">…</span>
+    </header>
+
+    <nav>
+        <div class="tab act" onclick="showPage('status',this)">Status</div>
+        <div class="tab" onclick="showPage('network',this)">Network</div>
+        <div class="tab" onclick="showPage('clients',this)">Clients</div>
+        <div class="tab" onclick="showPage('scan',this)">Scan</div>
+        <div class="tab" onclick="showPage('advanced',this)">Advanced</div>
+        <div class="tab" onclick="showPage('system',this)">System</div>
+    </nav>
+
+    <!-- STATUS -->
+    <div id="p-status" class="page act">
+        <div class="stat-grid">
+            <div class="stat">
+                <div class="v" id="s-clients">-</div>
+                <div class="l">Clients</div>
+            </div>
+            <div class="stat">
+                <div class="v" id="s-rssi">-</div>
+                <div class="l">RSSI (dBm)</div>
+            </div>
+            <div class="stat">
+                <div class="v" id="s-up">-</div>
+                <div class="l">Uptime</div>
+            </div>
+            <div class="stat">
+                <div class="v" id="s-heap">-</div>
+                <div class="l">Free heap</div>
+            </div>
+        </div>
+        <div class="card">
+            <h3>Upstream (STA)</h3>
+            <div class="row"><span class="lbl">SSID</span><span id="r-staSsid">-</span></div>
+            <div class="row"><span class="lbl">IP</span><span id="r-staIp">-</span></div>
+            <div class="row"><span class="lbl">Gateway</span><span id="r-staGw">-</span></div>
+            <div class="row"><span class="lbl">Signal</span><span id="r-sig">-</span></div>
+        </div>
+        <div class="card">
+            <h3>Hotspot (AP)</h3>
+            <div class="row"><span class="lbl">SSID</span><span id="r-apSsid">-</span></div>
+            <div class="row"><span class="lbl">IP</span><span>192.168.4.1</span></div>
+            <div class="row"><span class="lbl">Channel</span><span id="r-apCh">-</span></div>
+        </div>
+        <div class="card">
+            <h3>Traffic</h3>
+            <div class="row"><span class="lbl">TX</span><span id="r-tx">-</span></div>
+            <div class="row"><span class="lbl">RX</span><span id="r-rx">-</span></div>
+            <div class="row"><span class="lbl">Packets forwarded</span><span id="r-pkt">-</span></div>
+        </div>
+    </div>
+
+    <!-- NETWORK -->
+    <div id="p-network" class="page">
+        <div class="card">
+            <h3>Upstream WiFi (STA)</h3>
+            <label>SSID</label><input id="n-staSsid" type="text" placeholder="Home router SSID">
+            <label>Password</label><input id="n-staPass" type="password" placeholder="Leave blank to keep current">
+            <button class="btn btn-blue" onclick="saveSTA()">Save &amp; Reconnect</button>
+        </div>
+        <div class="card">
+            <h3>Hotspot (AP)</h3>
+            <label>AP SSID</label><input id="n-apSsid" type="text">
+            <label>AP Password (min 8 or blank for open)</label><input id="n-apPass" type="password">
+            <label>Channel</label>
+            <select id="n-apCh">
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+                <option selected>6</option>
+                <option>7</option>
+                <option>8</option>
+                <option>9</option>
+                <option>10</option>
+                <option>11</option>
+            </select>
+            <label>Max Clients</label>
+            <select id="n-apMax">
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option selected>4</option>
+                <option>5</option>
+                <option>6</option>
+                <option>7</option>
+                <option>8</option>
+            </select>
+            <button class="btn btn-blue" onclick="saveAP()">Apply AP Settings</button>
+        </div>
+    </div>
+
+    <!-- CLIENTS -->
+    <div id="p-clients" class="page">
+        <div class="card">
+            <h3>Connected clients</h3>
+            <div id="client-list">
+                <p style="color:#64748b;font-size:13px">Loading…</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCAN -->
+    <div id="p-scan" class="page">
+        <div class="card">
+            <h3>WiFi networks nearby</h3>
+            <button class="btn btn-blue" onclick="doScan()">Scan now</button>
+            <div id="scan-list" style="margin-top:14px"></div>
+        </div>
+    </div>
+
+    <!-- ADVANCED -->
+    <div id="p-advanced" class="page">
+        <div class="card">
+            <h3>Repeater features</h3>
+            <div class="row"><span class="lbl">NAT / IP forwarding</span><span class="badge ok">Enabled</span></div>
+            <div class="row"><span class="lbl">DNS relay</span><span class="badge ok">Enabled</span></div>
+            <div class="row"><span class="lbl">DHCP server</span><span class="badge ok">192.168.4.x</span></div>
+            <div class="row"><span class="lbl">OTA updates</span><span class="badge ok">Ready</span></div>
+        </div>
+        <div class="card">
+            <h3>TX power</h3>
+            <label>Power (0–82 units, 1 unit = 0.25 dBm)</label>
+            <input id="txp" type="range" min="0" max="82" value="82"
+                oninput="document.getElementById('txpv').textContent=(this.value*0.25).toFixed(2)+' dBm'">
+            <span id="txpv">20.50 dBm</span>
+            <div class="btn-row"><button class="btn btn-blue" onclick="setPower()">Set Power</button></div>
+        </div>
+        <div class="card">
+            <h3>Watchdog</h3>
+            <div class="row"><span class="lbl">Ping host</span><span>8.8.8.8</span></div>
+            <div class="row"><span class="lbl">Interval</span><span>30 s</span></div>
+            <div class="row"><span class="lbl">Reconnect retries</span><span>10</span></div>
+            <div class="row"><span class="lbl">Hard reboot after</span><span>5 min offline</span></div>
+        </div>
+    </div>
+
+    <!-- SYSTEM -->
+    <div id="p-system" class="page">
+        <div class="card">
+            <h3>Device info</h3>
+            <div class="row"><span class="lbl">Firmware</span><span>v2.4.0</span></div>
+            <div class="row"><span class="lbl">Chip ID</span><span id="r-chip">-</span></div>
+            <div class="row"><span class="lbl">Flash size</span><span id="r-flash">-</span></div>
+            <div class="row"><span class="lbl">CPU freq</span><span id="r-cpu">-</span></div>
+            <div class="row"><span class="lbl">Free heap</span><span id="r-heap2">-</span></div>
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-blue" onclick="doOTA()">OTA Update</button>
+            <button class="btn" onclick="doReboot()">Reboot</button>
+            <button class="btn btn-red" onclick="doFactory()">Factory Reset</button>
+        </div>
+    </div>
+
+    <script>
+        function showPage(id, el) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('act'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('act'));
+            document.getElementById('p-' + id).classList.add('act');
+            el.classList.add('act');
+            if (id === 'clients') loadClients();
+            if (id === 'network') loadNetConfig();
+            if (id === 'system') loadStatus();
+        }
+
+        function fmt(b) { if (b < 1024) return b + 'B'; if (b < 1048576) return (b / 1024).toFixed(1) + 'KB'; return (b / 1048576).toFixed(1) + 'MB'; }
+        function fmtUp(s) { var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60); return h + 'h ' + m + 'm'; }
+        function sigBars(r) { var p = r > -55 ? 4 : r > -65 ? 3 : r > -75 ? 2 : 1; return p; }
+
+        async function loadStatus() {
+            try {
+                var d = await (await fetch('/api/status')).json();
+                document.getElementById('s-clients').textContent = d.apClients;
+                document.getElementById('s-rssi').textContent = d.staConnected ? d.staRssi : '—';
+                document.getElementById('s-up').textContent = fmtUp(d.uptime);
+                document.getElementById('s-heap').textContent = fmt(d.freeHeap);
+                document.getElementById('r-staSsid').textContent = d.staSsid || '—';
+                document.getElementById('r-staIp').textContent = d.staIp || '—';
+                document.getElementById('r-staGw').textContent = d.staGw || '—';
+                document.getElementById('r-sig').textContent = d.staConnected ? (d.staRssi + ' dBm') : 'Offline';
+                document.getElementById('r-apSsid').textContent = d.apSsid;
+                document.getElementById('r-apCh').textContent = d.apChannel;
+                document.getElementById('r-tx').textContent = fmt(d.txBytes);
+                document.getElementById('r-rx').textContent = fmt(d.rxBytes);
+                document.getElementById('r-pkt').textContent = d.packetsFwd.toLocaleString();
+                var b = document.getElementById('sta-badge');
+                b.textContent = d.staConnected ? 'Online' : 'Offline';
+                b.className = 'badge ' + (d.staConnected ? 'ok' : 'warn');
+                if (document.getElementById('r-chip')) {
+                    document.getElementById('r-chip').textContent = d.chipId.toUpperCase();
+                    document.getElementById('r-flash').textContent = fmt(d.flashSize);
+                    document.getElementById('r-cpu').textContent = d.cpuFreq + ' MHz';
+                    document.getElementById('r-heap2').textContent = fmt(d.freeHeap);
+                }
+            } catch (e) { console.warn(e); }
+        }
+
+        async function loadNetConfig() {
+            try {
+                var d = await (await fetch('/api/config')).json();
+                document.getElementById('n-staSsid').value = d.staSsid;
+                document.getElementById('n-apSsid').value = d.apSsid;
+                var ch = document.getElementById('n-apCh');
+                for (var i = 0; i < ch.options.length; i++)if (ch.options[i].value == d.apChannel) ch.selectedIndex = i;
+                var mx = document.getElementById('n-apMax');
+                for (var i = 0; i < mx.options.length; i++)if (mx.options[i].value == d.apMaxConn) mx.selectedIndex = i;
+            } catch (e) { }
+        }
+
+        async function loadClients() {
+            try {
+                var d = await (await fetch('/api/clients')).json();
+                var el = document.getElementById('client-list');
+                if (!d.clients.length) { el.innerHTML = '<p style="color:#64748b;font-size:13px">No clients connected</p>'; return; }
+                el.innerHTML = d.clients.map(c => `<div class="row"><span style="color:#22c55e;font-size:11px">&#9679;</span> <span style="flex:1;margin:0 8px">${c.mac}</span></div>`).join('');
+            } catch (e) { }
+        }
+
+        async function doScan() {
+            document.getElementById('scan-list').innerHTML = '<p style="color:#64748b;font-size:13px">Scanning…</p>';
+            try {
+                var d = await (await fetch('/api/scan')).json();
+                document.getElementById('scan-list').innerHTML = d.networks.map(n =>
+                    `<div class="row"><span>${n.ssid}</span><span style="color:#64748b;font-size:12px">${n.rssi} dBm · ch${n.channel}</span></div>`
+                ).join('') || '<p style="color:#64748b;font-size:13px">None found</p>';
+            } catch (e) { document.getElementById('scan-list').innerHTML = '<p style="color:#ef4444;font-size:13px">Scan failed</p>'; }
+        }
+
+        async function saveSTA() {
+            var body = { staSsid: document.getElementById('n-staSsid').value, staPass: document.getElementById('n-staPass').value };
+            var r = await fetch('/api/config/sta', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            alert((await r.json()).msg || 'Saved');
+        }
+
+        async function saveAP() {
+            var body = {
+                apSsid: document.getElementById('n-apSsid').value, apPass: document.getElementById('n-apPass').value,
+                apChannel: parseInt(document.getElementById('n-apCh').value), apMaxConn: parseInt(document.getElementById('n-apMax').value)
+            };
+            var r = await fetch('/api/config/ap', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            alert((await r.json()).msg || 'Saved');
+        }
+
+        async function setPower() {
+            var v = parseInt(document.getElementById('txp').value);
+            await fetch('/api/power', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ txPower: v }) });
+            alert('TX power set to ' + (v * 0.25).toFixed(2) + ' dBm');
+        }
+
+        async function doReboot() { if (!confirm('Reboot ESP8266?')) return; await fetch('/api/reboot', { method: 'POST' }); alert('Rebooting…'); }
+        async function doFactory() { if (!confirm('Factory reset? All settings lost!')) return; await fetch('/api/factory', { method: 'POST' }); alert('Resetting…'); }
+        function doOTA() { alert('Use Arduino IDE OTA at ' + location.hostname + ' with password: butler2024'); }
+
+        loadStatus();
+        setInterval(loadStatus, 5000);
+    </script>
+</body>
+
+</html>
